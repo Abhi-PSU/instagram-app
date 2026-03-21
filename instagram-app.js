@@ -1,18 +1,7 @@
-/**
- * Copyright 2026 Abhi-PSU
- * @license Apache-2.0, see LICENSE for full text.
- */
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
-import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
 
-/**
- * `instagram-app`
- * 
- * @demo index.html
- * @element instagram-app
- */
-export class InstagramApp extends DDDSuper(I18NMixin(LitElement)) {
+export class InstagramApp extends DDDSuper(LitElement) {
 
   static get tag() {
     return "instagram-app";
@@ -20,64 +9,120 @@ export class InstagramApp extends DDDSuper(I18NMixin(LitElement)) {
 
   constructor() {
     super();
-    this.title = "";
-    this.t = this.t || {};
-    this.t = {
-      ...this.t,
-      title: "Title",
-    };
-    this.registerLocalization({
-      context: this,
-      localesPath:
-        new URL("./locales/instagram-app.ar.json", import.meta.url).href +
-        "/../",
-    });
+    this.imageUrl = "";
+    this.imageLink = "";
+    this.liked = false;
   }
 
-  // Lit reactive properties
   static get properties() {
     return {
       ...super.properties,
-      title: { type: String },
+      imageUrl: { type: String },
+      imageLink: { type: String },
+      liked: { type: Boolean },
     };
   }
 
-  // Lit scoped styles
   static get styles() {
-    return [super.styles,
-    css`
+    return [super.styles, css`
       :host {
         display: block;
-        color: var(--ddd-theme-primary);
-        background-color: var(--ddd-theme-accent);
         font-family: var(--ddd-font-navigation);
       }
-      .wrapper {
-        margin: var(--ddd-spacing-2);
-        padding: var(--ddd-spacing-4);
+      .card {
+        max-width: 400px;
+        margin: 40px auto;
+        border: 1px solid #dbdbdb;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
       }
-      h3 span {
-        font-size: var(--instagram-app-label-font-size, var(--ddd-font-size-s));
+      .card-header {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        gap: 10px;
+      }
+      .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+      }
+      .username {
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .card-image img {
+        width: 100%;
+        display: block;
+      }
+      .card-actions {
+        padding: 10px 12px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        padding: 0;
+      }
+      .caption {
+        padding: 0 12px 12px;
+        font-size: 14px;
+      }
+      a {
+        color: #00376b;
+        font-size: 12px;
+        padding: 0 12px 12px;
+        display: block;
       }
     `];
   }
 
-  // Lit render the HTML
-  render() {
-    return html`
-<div class="wrapper">
-  <h3><span>${this.t.title}:</span> ${this.title}</h3>
-  <slot></slot>
-</div>`;
+  async connectedCallback() {
+    super.connectedCallback();
+    await this.loadFox();
   }
 
-  /**
-   * haxProperties integration via file reference
-   */
-  static get haxProperties() {
-    return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url)
-      .href;
+  async loadFox() {
+    const response = await fetch("https://randomfox.ca/floof/");
+    const data = await response.json();
+    this.imageUrl = data.image;
+    this.imageLink = data.link;
+  }
+
+  toggleLike() {
+    this.liked = !this.liked;
+  }
+
+  render() {
+    return html`
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar"></div>
+          <span class="username">randomfox</span>
+        </div>
+        <div class="card-image">
+          ${this.imageUrl
+            ? html`<img src="${this.imageUrl}" alt="A random fox" />`
+            : html`<p style="padding:20px">Loading fox...</p>`}
+        </div>
+        <div class="card-actions">
+          <button @click="${this.toggleLike}">
+            ${this.liked ? "❤️" : "🤍"}
+          </button>
+        </div>
+        <div class="caption">A wild fox appeared!</div>
+        ${this.imageLink
+          ? html`<a href="${this.imageLink}" target="_blank">View source</a>`
+          : ""}
+      </div>
+    `;
   }
 }
 
-globalThis.customElements.define(InstagramApp.tag, InstagramApp);
+customElements.define(InstagramApp.tag, InstagramApp);
