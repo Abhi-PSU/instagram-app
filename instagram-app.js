@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 
 export class InstagramApp extends DDDSuper(LitElement) {
-
+// IST 256 Project 1 
   static get tag() {
     return "instagram-app";
   }
@@ -33,7 +33,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
         max-width: 400px;
         margin: 40px auto;
         border: 1px solid #dbdbdb;
-        border-radius: 8px;
+        border-radius: 6px;
         overflow: hidden;
         background: white;
       }
@@ -64,12 +64,15 @@ export class InstagramApp extends DDDSuper(LitElement) {
         align-items: center;
       }
       button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 24px;
-        padding: 0;
-      }
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 10px;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+}
       .caption {
         padding: 0 12px 12px;
         font-size: 14px;
@@ -87,14 +90,14 @@ export class InstagramApp extends DDDSuper(LitElement) {
     super.connectedCallback();
     await this.loadFox();
   }
-
+// gets a random fox image from the API and updates the component state with the image URL and link.
   async loadFox() {
     const response = await fetch("https://randomfox.ca/floof/");
     const data = await response.json();
     this.imageUrl = data.image;
     this.imageLink = data.link;
   }
-
+// toggles the liked state when the like button is clicked, couldnt figure out how to add emojis to the button so it just changes the text for now.
   toggleLike() {
     this.liked = !this.liked;
   }
@@ -104,7 +107,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
       <div class="card">
         <div class="card-header">
           <div class="avatar"></div>
-          <span class="username">randomfox</span>
+          <span class="username">fox_gallery</span>
         </div>
         <div class="card-image">
           ${this.imageUrl
@@ -113,10 +116,10 @@ export class InstagramApp extends DDDSuper(LitElement) {
         </div>
         <div class="card-actions">
           <button @click="${this.toggleLike}">
-            ${this.liked ? "❤️" : "🤍"}
+            ${this.liked ? " liked" : " like"}
           </button>
         </div>
-        <div class="caption">A wild fox appeared!</div>
+        <div class="caption">Fox of the day</div>
         ${this.imageLink
           ? html`<a href="${this.imageLink}" target="_blank">View source</a>`
           : ""}
