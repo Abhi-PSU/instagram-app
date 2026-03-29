@@ -36,7 +36,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
         font-family: var(--ddd-font-navigation);
       }
       .card {
-        max-width: 400px;
+        max-width: 4200px;
         margin: 40px auto;
         border: 1px solid #dbdbdb;
         border-radius: 6px;
@@ -130,7 +130,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
     this.author = data.author;
   }
 
-  // see if this photo was already liked
+  // see if this photo was already liked so it dosent reset 
   isLiked(id) {
     return localStorage.getItem(`liked-${id}`) === "true";
   }
@@ -142,7 +142,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
     this.requestUpdate();
   }
 
-  // keep the url in sync with what slide ur on
+  // keep the url in sync with what slide ur on, holding its place 
   updateURL(index) {
     const url = new URL(window.location.href);
     url.searchParams.set("activeIndex", index);
@@ -165,7 +165,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
 
   render() {
     const image = this.images[this.activeIndex];
-    if (!image) return html`<p style="padding:20px">loading...</p>`;
+    if (!image) return html`<p style="padding:20px">luring foxes...</p>`;
 
     return html`
       <div class="card">
