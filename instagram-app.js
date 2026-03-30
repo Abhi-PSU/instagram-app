@@ -129,8 +129,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
   }
 
   async loadData() {
-    const url = new URL("../lib/api.json", import.meta.url).href;
-    const response = await fetch(url);
+const url = new URL("./api.json", import.meta.url).href;    const response = await fetch(url);
     const data = await response.json();
     this.images = data.images;
     this.author = data.author;
