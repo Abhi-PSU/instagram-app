@@ -32,9 +32,11 @@ export class InstagramApp extends DDDSuper(LitElement) {
   static get styles() {
     return [super.styles, css`
       :host {
-        display: block;
-        font-family: var(--ddd-font-navigation);
-      }
+  display: block;
+  font-family: var(--ddd-font-navigation);
+  max-width: 420px;
+  margin: 0 auto;
+}
       .card {
         max-width: 4200px;
         margin: 40px auto;
@@ -42,6 +44,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
         border-radius: 6px;
         overflow: hidden;
         background: white;
+        
       }
       .card-header {
         display: flex;
@@ -61,8 +64,11 @@ export class InstagramApp extends DDDSuper(LitElement) {
         color: #262626;
       }
       .card-image img {
-        width: 100%;
-        display: block;
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+  display: block;
+}
       }
       .card-actions {
         padding: 10px 12px;
@@ -165,7 +171,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
 
   render() {
     const image = this.images[this.activeIndex];
-    if (!image) return html`<p style="padding:20px">luring foxes...</p>`;
+    if (!image) return html`="padding:20px">luring foxes...</p>`;
 
     return html`
       <div class="card">
