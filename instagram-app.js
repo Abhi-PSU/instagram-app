@@ -12,7 +12,8 @@ export class InstagramApp extends DDDSuper(LitElement) {
     this.images = [];
     this.author = {};
     this.activeIndex = 0;
-    // grab the index from the url if someone shared a link
+    this.showCopied = false;
+    // check if someone shared a link with a specific slide
     const params = new URLSearchParams(window.location.search);
     const urlIndex = params.get("activeIndex");
     if (urlIndex !== null) {
@@ -26,128 +27,172 @@ export class InstagramApp extends DDDSuper(LitElement) {
       images: { type: Array },
       author: { type: Object },
       activeIndex: { type: Number },
+      showCopied: { type: Boolean },
     };
   }
 
   static get styles() {
     return [super.styles, css`
       :host {
-  display: block;
-  font-family: var(--ddd-font-navigation);
-  max-width: 420px;
-  margin: 0 auto;
-}
+        display: flex;
+        justify-content: center;
+        font-family: var(--ddd-font-navigation);
+        padding: 32px 16px;
+        color: light-dark(#111, #f0f0f0);
+      }
       .card {
-        max-width: 4200px;
-        margin: 40px auto;
-        border: 1px solid #dbdbdb;
-        border-radius: 6px;
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid light-dark(#e0e0e0, #2a2a2a);
+        border-radius: 3px;
+        background: light-dark(#fff, #111);
         overflow: hidden;
-        background: white;
-        
       }
       .card-header {
         display: flex;
         align-items: center;
-        padding: 12px;
         gap: 10px;
+        padding: 10px 12px;
+        border-bottom: 1px solid light-dark(#e0e0e0, #2a2a2a);
       }
       .avatar {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         object-fit: cover;
+        filter: grayscale(100%);
       }
       .username {
-        font-weight: bold;
-        font-size: 14px;
-        color: #262626;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        color: light-dark(#111, #f0f0f0);
+      }
+      .user-since {
+        font-size: 11px;
+        color: light-dark(#999, #666);
+        margin-left: auto;
+      }
+      .card-image {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: light-dark(#f5f5f5, #1a1a1a);
+        overflow: hidden;
       }
       .card-image img {
-  width: 100%;
-  max-height: 500px;
-  object-fit: cover;
-  display: block;
-}
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: grayscale(20%);
+      }
+      .card-body {
+        padding: 12px;
+      }
+      .image-name {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: light-dark(#111, #f0f0f0);
+      }
+      .image-desc {
+        font-size: 12px;
+        color: light-dark(#555, #aaa);
+        margin-bottom: 4px;
+        line-height: 1.5;
+      }
+      .image-date {
+        font-size: 11px;
+        color: light-dark(#bbb, #555);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
       .card-actions {
-        padding: 10px 12px;
         display: flex;
-        gap: 12px;
         align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-top: 1px solid light-dark(#e0e0e0, #2a2a2a);
       }
-      .like-btn {
+      .like-btn, .share-btn {
         background: none;
-        border: 1px solid #dbdbdb;
-        border-radius: 4px;
+        border: none;
         cursor: pointer;
-        font-size: 14px;
-        padding: 4px 10px;
-        color: #262626;
-      }
-      .caption {
-        padding: 0 12px 4px;
-        font-size: 14px;
-        color: #262626;
-      }
-      .date {
-        padding: 0 12px 12px;
         font-size: 12px;
-        color: #8e8e8e;
+        padding: 0;
+        color: light-dark(#111, #f0f0f0);
+        letter-spacing: 0.3px;
+      }
+      .like-btn:hover, .share-btn:hover {
+        text-decoration: underline;
+      }
+      .share-btn {
+        margin-left: auto;
+        color: light-dark(#999, #666);
+      }
+      .copied-msg {
+        font-size: 11px;
+        color: light-dark(#999, #666);
       }
       .nav {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         padding: 10px 12px;
-        border-top: 1px solid #dbdbdb;
+        border-top: 1px solid light-dark(#e0e0e0, #2a2a2a);
       }
       .nav button {
         background: none;
-        border: 1px solid #dbdbdb;
-        border-radius: 4px;
-        padding: 6px 14px;
+        border: none;
         cursor: pointer;
-        font-size: 14px;
-        color: #262626;
+        font-size: 12px;
+        color: light-dark(#111, #f0f0f0);
+        padding: 0;
+        letter-spacing: 0.3px;
+      }
+      .nav button:hover {
+        text-decoration: underline;
       }
       .nav button:disabled {
-        opacity: 0.3;
+        opacity: 0.2;
         cursor: default;
+        text-decoration: none;
       }
       .counter {
-        font-size: 13px;
-        color: #8e8e8e;
-        align-self: center;
+        font-size: 11px;
+        color: light-dark(#bbb, #555);
+        letter-spacing: 0.5px;
       }
     `];
   }
 
-  // fetch the fox data when the page loads
   async connectedCallback() {
     super.connectedCallback();
     await this.loadData();
   }
 
+  // pulls image + author data, falls back to local json when developing
   async loadData() {
-const url = new URL("./api.json", import.meta.url).href;    const response = await fetch(url);
+    const isLocal = window.location.hostname === "localhost";
+    const url = isLocal ? new URL("../api.json", import.meta.url).href : "/api/images";
+    const response = await fetch(url);
     const data = await response.json();
     this.images = data.images;
     this.author = data.author;
   }
 
-  // see if this photo was already liked so it dosent reset 
   isLiked(id) {
     return localStorage.getItem(`liked-${id}`) === "true";
   }
 
-  // flip the like and save it so it remembers
+  // saves like state to localstorage so it persists on refresh
   toggleLike(id) {
     const current = this.isLiked(id);
     localStorage.setItem(`liked-${id}`, String(!current));
     this.requestUpdate();
   }
 
-  // keep the url in sync with what slide ur on, holding its place 
+  // keeps the url updated so you can share a specific slide
   updateURL(index) {
     const url = new URL(window.location.href);
     url.searchParams.set("activeIndex", index);
@@ -168,30 +213,54 @@ const url = new URL("./api.json", import.meta.url).href;    const response = awa
     }
   }
 
+  sharePhoto() {
+    const url = new URL(window.location.href);
+    url.searchParams.set("activeIndex", this.activeIndex);
+    navigator.clipboard.writeText(url.toString());
+    this.showCopied = true;
+    setTimeout(() => {
+      this.showCopied = false;
+    }, 2000);
+  }
+
   render() {
     const image = this.images[this.activeIndex];
-    if (!image) return html`="padding:20px">luring foxes...</p>`;
+    if (!image) return html`<p style="padding:20px;font-size:13px">loading...</p>`;
 
     return html`
       <div class="card">
         <div class="card-header">
-          <img class="avatar" src="${this.author.image}" alt="author" />
+          <img class="avatar" src="${this.author.image}" alt="avatar" />
           <span class="username">${this.author.channel}</span>
+          <span class="user-since">since ${this.author.userSince}</span>
         </div>
-        <div class="card-image">
-          <img src="${image.thumbnail}" alt="${image.name}" />
+        <<div class="card-image">
+  <a href="${image.fullSize}" target="_blank">
+    <img
+      loading="lazy"
+      src="${image.thumbnail}"
+      alt="${image.name}"
+    />
+  </a>
+</div>
+        <div class="card-body">
+          <div class="image-name">${image.name}</div>
+          <div class="image-desc">${image.description}</div>
+          <div class="image-date">${image.dateTaken}</div>
         </div>
         <div class="card-actions">
           <button class="like-btn" @click="${() => this.toggleLike(image.id)}">
             ${this.isLiked(image.id) ? "♥ liked" : "♡ like"}
           </button>
+          ${this.showCopied
+            ? html`<span class="copied-msg">link copied</span>`
+            : ""}
+          <button class="share-btn" @click="${this.sharePhoto}">share</button>
         </div>
-        <div class="caption">${image.name}</div>
-        <div class="date">${image.description} · ${image.dateTaken}</div>
         <div class="nav">
-          <button @click="${this.goPrev}" ?disabled="${this.activeIndex === 0}">Back</button>
+          <button @click="${this.goPrev}" ?disabled="${this.activeIndex === 0}">prev</button>
           <span class="counter">${this.activeIndex + 1} / ${this.images.length}</span>
-          <button @click="${this.goNext}" ?disabled="${this.activeIndex === this.images.length - 1}">Next</button>
+          <button @click="${this.goNext}" ?disabled="${this.activeIndex === this.images.length - 1}">next</button>
         </div>
       </div>
     `;
