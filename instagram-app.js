@@ -1,3 +1,8 @@
+// Re-formatted the entire color schme of the app to be light/dark mode compatible, 
+// added a few more details to the image cards, and made the images link to the full size version when clicked. 
+// Also added a counter to show which image you're on out of the total.
+
+
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 
@@ -13,7 +18,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
     this.author = {};
     this.activeIndex = 0;
     this.showCopied = false;
-    // check if someone shared a link with a specific slide
+  
     const params = new URLSearchParams(window.location.search);
     const urlIndex = params.get("activeIndex");
     if (urlIndex !== null) {
@@ -234,7 +239,7 @@ export class InstagramApp extends DDDSuper(LitElement) {
           <span class="username">${this.author.channel}</span>
           <span class="user-since">since ${this.author.userSince}</span>
         </div>
-        <<div class="card-image">
+        <div class="card-image">
   <a href="${image.fullSize}" target="_blank">
     <img
       loading="lazy"
