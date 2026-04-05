@@ -178,13 +178,13 @@ export class InstagramApp extends DDDSuper(LitElement) {
 
   // pulls image + author data, falls back to local json when developing
   async loadData() {
-    const isLocal = window.location.hostname === "localhost";
-    const url = isLocal ? new URL("../api.json", import.meta.url).href : "/api/images";
-    const response = await fetch(url);
-    const data = await response.json();
-    this.images = data.images;
-    this.author = data.author;
-  }
+  const isLocal = window.location.hostname === "localhost";
+  const url = isLocal ? "./api.json" : "/api/images";
+  const response = await fetch(url);
+  const data = await response.json();
+  this.images = data.images;
+  this.author = data.author;
+}
 
   isLiked(id) {
     return localStorage.getItem(`liked-${id}`) === "true";
