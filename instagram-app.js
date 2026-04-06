@@ -12,7 +12,8 @@ export class InstagramApp extends DDDSuper(LitElement) {
     this.images = [];
     this.author = {};
     this.activeIndex = 0;
-    // grab the index from the url if someone shared a link
+    this.showModal = false;
+
     const params = new URLSearchParams(window.location.search);
     const urlIndex = params.get("activeIndex");
     if (urlIndex !== null) {
@@ -26,6 +27,8 @@ export class InstagramApp extends DDDSuper(LitElement) {
       images: { type: Array },
       author: { type: Object },
       activeIndex: { type: Number },
+          showModal: { type: Boolean },
+
     };
   }
 
@@ -40,11 +43,12 @@ export class InstagramApp extends DDDSuper(LitElement) {
       .card {
         max-width: 420px;
         margin: 40px auto;
-        border: 1px solid #dbdbdb;
+        border: 1px solid var(--ddd-theme-default-limestoneLight);
         border-radius: 6px;
         overflow: hidden;
-        background: white;
-        
+        background: var(--ddd-theme-default-white);
+  border: 1px solid var(--ddd-theme-default-limestoneLight);
+  
       }
       .card-header {
         display: flex;
@@ -61,16 +65,16 @@ export class InstagramApp extends DDDSuper(LitElement) {
       .username {
         font-weight: bold;
         font-size: 14px;
-        color: #262626;
+        color:var(--ddd-theme-default-coalyGray);
       }
       .card-image img {
   width: 100%;
   max-height: 500px;
   object-fit: cover;
   display: block;
-  justyfy-cotent: center;
+
 }
-      }
+      
       .card-actions {
         padding: 10px 12px;
         display: flex;
@@ -79,37 +83,46 @@ export class InstagramApp extends DDDSuper(LitElement) {
       }
       .like-btn {
         background: none;
-        border: 1px solid #dbdbdb;
+        border: 1px solid var(--ddd-theme-default-limestoneLight);
         border-radius: 4px;
         cursor: pointer;
         font-size: 14px;
         padding: 4px 10px;
-        color: #262626;
+        color: var(--ddd-theme-default-coalyGray);
       }
+      .share-btn {
+  background: none;
+  border: 1px solid var(--ddd-theme-default-limestoneLight);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 10px;
+  color: var(--ddd-theme-default-coalyGray);
+}
       .caption {
         padding: 0 12px 4px;
         font-size: 14px;
-        color: #262626;
+         color: var(--ddd-theme-default-coalyGray); 
       }
       .date {
         padding: 0 12px 12px;
         font-size: 12px;
-        color: #8e8e8e;
+        color: var(--ddd-theme-default-limestoneGray);
       }
       .nav {
         display: flex;
         justify-content: space-between;
         padding: 10px 12px;
-        border-top: 1px solid #dbdbdb;
+        border-top: 1px solid var(--ddd-theme-default-limestoneLight);
       }
       .nav button {
         background: none;
-        border: 1px solid #dbdbdb;
+        border: 1px solid var(--ddd-theme-default-limestoneLight);
         border-radius: 4px;
         padding: 6px 14px;
         cursor: pointer;
         font-size: 14px;
-        color: #262626;
+        color:  var(--ddd-theme-default-coalyGray);
       }
       .nav button:disabled {
         opacity: 0.3;
@@ -117,13 +130,38 @@ export class InstagramApp extends DDDSuper(LitElement) {
       }
       .counter {
         font-size: 13px;
-        color: #8e8e8e;
+        color: var(--ddd-theme-default-limestoneGray);
         align-self: center;
       }
-    `];
+      .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+      .modal-overlay img {
+        max-width: 90%;
+        max-height: 90vh;
+        border-radius: 6px;
+      }
+      .modal-close {
+        position: fixed;
+        top: 16px; right: 16px;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+      }
+      .card-image img {
+        cursor: pointer;
+      }
+    `];       
   }
-
-  // fetch the fox data when the page loads
   async connectedCallback() {
     super.connectedCallback();
     await this.loadData();
@@ -136,19 +174,16 @@ const url = new URL("./api.json", import.meta.url).href;    const response = awa
     this.author = data.author;
   }
 
-  // see if this photo was already liked so it dosent reset 
   isLiked(id) {
     return localStorage.getItem(`liked-${id}`) === "true";
   }
 
-  // flip the like and save it so it remembers
   toggleLike(id) {
     const current = this.isLiked(id);
     localStorage.setItem(`liked-${id}`, String(!current));
     this.requestUpdate();
   }
 
-  // keep the url in sync with what slide ur on, holding its place 
   updateURL(index) {
     const url = new URL(window.location.href);
     url.searchParams.set("activeIndex", index);
@@ -162,6 +197,11 @@ const url = new URL("./api.json", import.meta.url).href;    const response = awa
     }
   }
 
+share() {
+  navigator.clipboard.writeText(window.location.href);
+  alert("Link copied to clipboard!");
+}
+
   goPrev() {
     if (this.activeIndex > 0) {
       this.activeIndex -= 1;
@@ -171,7 +211,7 @@ const url = new URL("./api.json", import.meta.url).href;    const response = awa
 
   render() {
     const image = this.images[this.activeIndex];
-    if (!image) return html`="padding:20px">luring foxes...</p>`;
+   if (!image) return html`<p style="padding:20px">Loading...</p>`;
 
     return html`
       <div class="card">
@@ -179,13 +219,25 @@ const url = new URL("./api.json", import.meta.url).href;    const response = awa
           <img class="avatar" src="${this.author.image}" alt="author" />
           <span class="username">${this.author.channel}</span>
         </div>
-        <div class="card-image">
-          <img src="${image.thumbnail}" alt="${image.name}" />
-        </div>
+       <div class="card-image">
+  <img src="${image.thumbnail}" alt="${image.name}" loading="lazy"
+    @click="${() => this.showModal = true}" />
+</div>
+</div>
+
+${this.showModal ? html`
+  <div class="modal-overlay" @click="${() => this.showModal = false}">
+    <button class="modal-close" @click="${() => this.showModal = false}">✕</button>
+    <img src="${image.fullSize}" alt="${image.name}" />
+  </div>
+` : ""}
+  
+    
         <div class="card-actions">
           <button class="like-btn" @click="${() => this.toggleLike(image.id)}">
             ${this.isLiked(image.id) ? "♥ liked" : "♡ like"}
           </button>
+          <button class="share-btn" @click="${this.share}">Share</button>
         </div>
         <div class="caption">${image.name}</div>
         <div class="date">${image.description} · ${image.dateTaken}</div>
