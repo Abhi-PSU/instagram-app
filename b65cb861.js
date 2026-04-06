@@ -182,7 +182,7 @@
   margin: 0 auto;
 }
       .card {
-        max-width: 4200px;
+        max-width: 420px;
         margin: 40px auto;
         border: 1px solid #dbdbdb;
         border-radius: 6px;
@@ -212,6 +212,7 @@
   max-height: 500px;
   object-fit: cover;
   display: block;
+  justyfy-cotent: center;
 }
       }
       .card-actions {
